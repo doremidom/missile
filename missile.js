@@ -94,7 +94,6 @@ function updateCities(){
 }
 
 function updateMissiles(){
-	//remove inactive bullets
 	missiles = missiles.filter(function(e) {
             if(e && e.active) return true;
             return false;
@@ -103,9 +102,7 @@ function updateMissiles(){
     //change position of missiles
     for (var i = 0; i <missiles.length; i++){
     	var missile = missiles[i]
-    	//console.log("before update " + missile.y)
     	missile.update();
-    	//console.log("finished update " + missile.y)
     }
 
 }
@@ -173,14 +170,45 @@ function drawMissiles(c, base){
 }
 
 
-function drawMissilePath(c) { 
+function drawMissilePath() { 
 	//console.log('trying to draw m path')
     for (var i = 0; i < missiles.length; i++){
-    	//console.log('drawing missile')
     	var missile = missiles[i]
-    	missile.draw();
+    	if((missile.target[0] == missile.x)){
+    		//alert('explode!')
+    		Sound.play("explode");
+    		explosion(missile)
+    		missile.active = false;
+    	}else{
+    		//console.log(missile.target[0] + " " + missile.x + " " + missile.target[1]  + missile.y)
+    	missile.draw();}
     }
 }; 
+
+var particles = []; 
+
+function explosion(missile){
+	particles = []; //clear any old values 
+        for(var i = 0; i<50; i++) { 
+            particles.push({ 
+                    x: missile.x ,
+                    y: missile.y,
+                    xv: (Math.random()-0.5)*2.0*5.0,  // x velocity 
+                    yv: (Math.random()-0.5)*2.0*5.0,  // y velocity 
+                    age: 0, 
+            }); 
+        }
+
+        for(var i=0; i<particles.length; i++) { 
+            var p = particles[i]; 
+            p.x += p.xv; 
+            p.y += p.yv; 
+            var v = 255-p.age*3; 
+            c.fillStyle = "rgb("+v+","+v+","+v+")"; 
+            c.fillRect(p.x,p.y,3,3); 
+            p.age++; 
+        }  
+}
  
 
 //actions
@@ -240,12 +268,15 @@ function Missile(I, x, y){
 	};
 
 	I.update = function() {
-		
-	    I.x ++;
+		if (I.slope > 0){
+	    	I.x --;}
+	    else if (I.slope < 0){
+	    	I.x ++;
+	    }
 	    I.y = (I.slope * I.x + I.line);
 
     	I.active = I.active && I.inBounds();
-    	//console.log(this.x + " " + this.y);
+    	console.log(I.slope + " <--slope  line--->"+ I.line);
   	};
 
   return I;
@@ -302,7 +333,7 @@ function gameLoop(){
 	drawBackground(c);
 	drawBases(c);
 	drawCities(c);
-	drawMissilePath(c);
+	drawMissilePath();
 	return;
 }
 
